@@ -22,10 +22,6 @@ The **Daily Habit Tracker** is a command-line interface (CLI) application writte
 
 - [Features](#features)  
 - [Building](#building)  
-- [Usage](#usage)  
-- [Contributing](#contributing)  
-- [License](#license)  
-- [Contact](#contact)  
 
 ---
 
