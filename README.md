@@ -31,7 +31,7 @@ The **Daily Habit Tracker** is a command-line interface (CLI) application writte
 
 ## Features
 
-### 🧑 User Features
+### User Features
 
 - **Register / Login**  
   Create a new account or log in to access your personal habit dashboard.
