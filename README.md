@@ -50,6 +50,8 @@ The **Daily Habit Tracker** is a command-line interface (CLI) application writte
 - **View Progress**  
   See your habit completion rates over time, rendered as a basic ASCII chart in the terminal.
 
+- **Notifications & Reminders**  
+  Configure optional system notifications or terminal alerts to remind you to check in.
 ---
 
 ## Building
