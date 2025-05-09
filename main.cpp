@@ -3,39 +3,79 @@
 using namespace std;
 
 int main() {
-    int user_choice = 0;
-    while (user_choice != 7) {
-        user_choice = Handler::print_and_get_choices();
-        switch (user_choice) {
+    Handler::load_users();
+
+    bool running = true;
+    while (running) {
+        int choice = Handler::print_login_menu();
+        system("clear");
+
+        switch (choice) {
             case 1:
-                system("clear");
                 Handler::register_user();
                 break;
+
             case 2:
-                system("clear");
-                Handler::add_habit();
+                if (Handler::login_user()) {
+                    bool inSession = true;
+                    while (inSession) {
+                        int cmd = Handler::print_and_get_choices();
+                        system("clear");
+
+                        switch (cmd) {
+                            case 1:
+                                Handler::add_habit();
+                                Handler::save_users();
+                                break;
+
+                            case 2:
+                                Handler::edit_habit();
+                                Handler::save_users();
+                                break;
+
+                            case 3:
+                                Handler::delete_habit();
+                                Handler::save_users();
+                                break;
+
+                            case 4:
+                                Handler::check_in();
+                                Handler::save_users();
+                                break;
+
+                            case 5:
+                                Handler::view_progress();
+                                break;
+
+                            case 6:
+                                Handler::logout();
+                                inSession = false;
+                                break;
+
+                            default:
+                                cout << "Invalid choice.\n";
+                        }
+
+                        cout<< "============================================" << endl;
+                        cout << "press enter key to continue.." << endl;
+                        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                        cin.get();
+                        system("clear");
+                    }
+                }
                 break;
-            case 3 :
-                system("clear");
-                Handler::edit_habit();
+
+            case 3:
+                Handler::save_users();
+                cout << "Goodbye!\n";
+                running = false;
                 break;
-            case 4 :
-                system("clear");
-                Handler::delete_habit();
-                break;
-            case 5:
-                system("clear");
-                Handler::check_in();
-                break;
-            case 6:
-                system("clear");
-                Handler::view_progress();
+
+            default:
+                cout << "Invalid choice.\n";
                 break;
         }
-        cout<< "============================================" << endl;
-        cout << "press enter key to continue.." << endl;
-        getchar(); getchar();
-        system("clear");
     }
+
     return 0;
 }
