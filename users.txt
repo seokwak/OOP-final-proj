@@ -1,0 +1,66 @@
+4
+wonmin wonmin 20
+medicine Health/Fitness daily 0 1746763987 0
+Health/Fitness Daily 0 1746764021 0 0
+daily 0 0 0 0 0
+daily 0 0 0 0 0
+daily 0 0 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  20
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  20
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+  daily 0 0 0
+ex ex 1
+clean Chores daily 1 1746764682 1

@@ -46,8 +46,10 @@ int main() {
                             case 5:
                                 Handler::view_progress();
                                 break;
-
                             case 6:
+                                Handler::set_reminder();
+                                break;
+                            case 7:
                                 Handler::logout();
                                 inSession = false;
                                 break;

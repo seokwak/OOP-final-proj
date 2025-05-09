@@ -14,19 +14,24 @@ struct Habit {
     string name;
     string category;
     int streak;
+    string frequency;
     time_t lastCheckIn;
-
-    Habit(): name(""), category(""), streak(0), lastCheckIn(0) {}
-    Habit(string n, string c): name(n), category(c), streak(0), lastCheckIn(0) {}
+    bool reminderSet;
+    Habit(): name(""), category(""), frequency("daily"), streak(0), lastCheckIn(0), reminderSet(false) {}
+    Habit(string n, string c, string f): name(n), frequency(f), category(c), streak(0), lastCheckIn(0), reminderSet(false) {}
 
     void markComplete() {
-        time_t now = time(nullptr);
-        if (difftime(now, lastCheckIn) >= 86400) {
+        time_t now = time(0);
+        double daysPassed= difftime(now,lastCheckIn)/86400.0;
+        if ((lastCheckIn == 0 ||frequency== "daily"&& daysPassed >= 1) ||
+            (frequency== "weekly"&& daysPassed >= 7) ||
+            (frequency =="monthly"&& daysPassed >=30)) {
             streak++;
             lastCheckIn = now;
-            cout << "Habit checked in!  Streak: " << streak << "\n";
-        } else {
-            cout << "Already checked in today.\n";
+            cout << "Habit checked in! Streak: " << streak << endl;
+        }
+        else {
+            cout << "Too early to check in again for this frequency.\n";
         }
     }
 };
@@ -41,19 +46,21 @@ public:
     User(): username(""), password(""), habitCount(0) {}
     User(string u, string p): username(u), password(p), habitCount(0) {}
 
-    void addHabit(const string& n, const string& c) {
+    void addHabit(const string& n, const string& c, const string& f) {
         if (habitCount < MAX_HABITS) {
-            habits[habitCount++] = Habit(n, c);
+            habits[habitCount++] = Habit(n, c,f);
             cout << "Added \"" << n << "\" in [" << c << "]\n";
+            cout <<"Frequency: "<< f<<endl;
         } else {
             cout << "Max habits reached.\n";
         }
     }
 
-    void editHabit(int idx, const string& n, const string& c) {
+    void editHabit(int idx, const string& n, const string& c,const string& f) {
         if (idx >= 0 && idx < habitCount) {
             habits[idx].name     = n;
             habits[idx].category = c;
+            habits[idx].frequency = f;
             cout << "Habit updated.\n";
         } else {
             cout << "Invalid habit number.\n";
@@ -85,6 +92,7 @@ public:
         }
         for (int i = 0; i < habitCount; ++i) {
             cout << "- " << habits[i].name
+                << " | Frequency: " << habits[i].frequency
                  << " | Streak: " << habits[i].streak
                  << "\n";
         }
@@ -112,6 +120,7 @@ public:
     static void delete_habit();
     static void check_in();
     static void view_progress();
+    static void set_reminder();
 };
 
 User  Handler::users[MAX_USERS];
@@ -133,8 +142,10 @@ void Handler::load_users() {
         for (int j = 0; j < hcount; ++j) {
             in >> users[i].habits[j].name
                >> users[i].habits[j].category
+               >> users[i].habits[j].frequency
                >> users[i].habits[j].streak
-               >> users[i].habits[j].lastCheckIn;
+               >> users[i].habits[j].lastCheckIn
+               >> users[i].habits[j].reminderSet;
         }
     }
 }
@@ -150,8 +161,10 @@ void Handler::save_users() {
             auto& h = users[i].habits[j];
             out << h.name << " "
                 << h.category << " "
+                << h.frequency << " "
                 << h.streak << " "
-                << h.lastCheckIn << "\n";
+                << h.lastCheckIn << " "
+                << h.reminderSet << "\n";
         }
     }
 }
@@ -176,7 +189,8 @@ int Handler::print_and_get_choices() {
          << "(3) Delete Habit\n"
          << "(4) Daily Check‑In\n"
          << "(5) View Progress\n"
-         << "(6) Logout\n"
+         << "(6) Set Reminders\n"
+         << "(7) Logout\n"
          << "============================================\n"
          << "Your choice: ";
     cin  >> choice;
@@ -201,7 +215,7 @@ void Handler::register_user() {
 
     users[userCount] = User(u,p);
     currentUser     = &users[userCount++];
-    cout << "Registered AND logged in as “" << u << "”\n";
+    cout << "Registered--Ready to login!"<<endl;
     save_users();
 }
 
@@ -246,7 +260,12 @@ void Handler::add_habit() {
     cout << "> "; 
     cin  >> c;
     if (c<1||c>5) c = 1;
-    currentUser->addHabit(name, cats[c-1]);
+    int freqChoice;
+    string freqs[3]={"Daily","Weekly","Monthly"};
+    cout << "Choose Frequency:\n(1) Daily\n(2) Weekly\n(3)Monthly\n";
+    cin >> freqChoice;
+    if (freqChoice < 1 || freqChoice > 3) freqChoice = 1;
+    currentUser->addHabit(name, cats[c - 1],freqs[freqChoice-1]);
 }
 
 void Handler::edit_habit() {
@@ -282,8 +301,15 @@ void Handler::edit_habit() {
     cout << "> "; 
     cin  >> newCat;
     if (newCat<1||newCat>5) newCat = 1;
-
-    currentUser->editHabit(idx-1, newName, cats[newCat-1]);
+    int newFreq;
+    cout << "New frequency:\n(1) Daily\n(2) Weekly\n(3) Monthly\n> ";
+    cin >> newFreq;
+    if (newFreq <1|| newFreq>3) newFreq = 1;
+    Habit& h= currentUser->habits[idx - 1];
+    h.name =newName;
+    h.category= cats[newCat - 1];
+    h.frequency= (newFreq == 1?"daily":newFreq== 2 ? "weekly":"monthly");
+    cout << "Habit updated.\n";
 }
 
 void Handler::delete_habit() {
@@ -321,6 +347,28 @@ void Handler::check_in() {
 void Handler::view_progress() {
     if (!currentUser) return;
     currentUser->showProgress();
+}
+
+void Handler::set_reminder() {
+    if (!currentUser || currentUser->habitCount == 0) {
+        cout << "No habits available.\n";
+        return;
+    }
+    cout << "Select a habit to set reminder:\n";
+    for (int i = 0;i <currentUser->habitCount; ++i){
+        cout << "(" << i + 1 << ") "
+             << currentUser->habits[i].name
+             << " [" << (currentUser->habits[i].reminderSet ? "ON" : "OFF") << "]\n";
+    }
+    int idx;
+    cout << "Enter habit number: ";
+    cin >> idx;
+    if (idx < 1|| idx >currentUser->habitCount) {
+        cout << "Invalid.\n";
+        return;
+    }
+    currentUser->habits[idx - 1].reminderSet=!currentUser->habits[idx - 1].reminderSet;
+    cout << "Reminder set for "<< currentUser->habits[idx - 1].name << ".\n";
 }
 
 #endif 
