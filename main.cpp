@@ -11,71 +11,65 @@ static void pause() {
 }
 
 int main() {
-    Handler::load_users();
+    Handler handler;
+    handler.loadUsers();
 
     bool running = true;
     while (running) {
-        // clear before showing login menu
         system("clear");
-
-        int choice = Handler::print_login_menu();
-
+        int choice = handler.printLoginMenu();
         switch (choice) {
             case 1:
-                Handler::register_user();
+                handler.registerUser();
                 pause();
                 break;
-
             case 2:
-                if (Handler::login_user()) {
+                if (handler.loginUser()) {
                     bool inSession = true;
                     while (inSession) {
                         system("clear");
-
-                        int cmd = Handler::print_and_get_choices();
-
+                        int cmd = handler.printAndGetChoices();
                         switch (cmd) {
                             case 1:
-                                Handler::add_habit();
-                                Handler::save_users();
+                                handler.addHabit();
+                                handler.saveUsers();
                                 break;
                             case 2:
-                                Handler::edit_habit();
-                                Handler::save_users();
+                                handler.editHabit();
+                                handler.saveUsers();
                                 break;
                             case 3:
-                                Handler::delete_habit();
-                                Handler::save_users();
+                                handler.deleteHabit();
+                                handler.saveUsers();
                                 break;
                             case 4:
-                                Handler::check_in();
-                                Handler::save_users();
+                                handler.checkIn();
+                                handler.saveUsers();
                                 break;
                             case 5:
-                                Handler::view_progress();
+                                handler.viewProgress();
                                 break;
                             case 6:
-                                Handler::set_reminder();
-                                Handler::save_users();
+                                handler.setReminder();
+                                handler.saveUsers();
                                 break;
                             case 7:
-                                Handler::logout();
+                                handler.logout();
                                 inSession = false;
                                 break;
                             default:
                                 cout << "Invalid choice." << endl;
+                                break;
                         }
                         pause();
                     }
                 }
                 break;
-
             case 3:
-                Handler::save_users();
+                handler.saveUsers();
                 cout << "Goodbye!\n";
                 running = false;
                 break;
-
             default:
                 cout << "Invalid choice." << endl;
                 pause();

@@ -19,51 +19,76 @@ struct Habit {
     time_t lastCheckIn;
     bool reminderSet;
 
-    Habit(): name(""), category(""), frequency("daily"), streak(0), lastCheckIn(0), reminderSet(false) {}
-    Habit(string n, string c, string f): name(n), frequency(f), category(c), streak(0), lastCheckIn(0), reminderSet(false) {}
+    Habit()
+      : name(""), category(""), frequency("daily"),
+        streak(0), lastCheckIn(0), reminderSet(false)
+    {}
+
+    Habit(const string& n, const string& c, const string& f)
+      : name(n), category(c), frequency(f),
+        streak(0), lastCheckIn(0), reminderSet(false)
+    {}
 
     void markComplete() {
         time_t now = time(nullptr);
-        double daysPassed = difftime(now, lastCheckIn) / 86400.0;
-        if ((lastCheckIn == 0 || (frequency == "daily" && daysPassed >= 1)) ||
-            (frequency == "weekly" && daysPassed >= 7) ||
-            (frequency == "monthly" && daysPassed >= 30)) {
+        double days = difftime(now, lastCheckIn) / 86400.0;
+        if (lastCheckIn == 0
+         || (frequency == "daily"   && days >= 1)
+         || (frequency == "weekly"  && days >= 7)
+         || (frequency == "monthly" && days >= 30))
+        {
             streak++;
             lastCheckIn = now;
             cout << "Habit checked in! Streak: " << streak << endl;
-        } else {
+        }
+        else {
             cout << "Too early to check in again for this frequency." << endl;
         }
+    }
+
+    void toggleReminder() {
+        reminderSet = !reminderSet;
+        cout << "Reminder "
+             << (reminderSet ? "ON" : "OFF")
+             << " for " << name << "." << endl;
     }
 };
 
 class User {
 public:
-    string   username;
-    string   password;
-    Habit    habits[MAX_HABITS];
-    int      habitCount;
+    string username;
+    string password;
+    Habit habits[MAX_HABITS];
+    int habitCount;
 
-    User(): username(""), password(""), habitCount(0) {}
-    User(string u, string p): username(u), password(p), habitCount(0) {}
+    User() : username(""), password(""), habitCount(0) {}
+    User(const string& u, const string& p)
+      : username(u), password(p), habitCount(0)
+    {}
 
     void addHabit(const string& n, const string& c, const string& f) {
         if (habitCount < MAX_HABITS) {
             habits[habitCount++] = Habit(n, c, f);
-            cout << "Added \"" << n << "\" in [" << c << "]" << endl;
-            cout << "Frequency: " << f << endl;
-        } else {
+            cout << "Added \"" << n << "\" in [" << c << "]\n"
+                 << "Frequency: " << f << endl;
+        }
+        else {
             cout << "Max habits reached." << endl;
         }
     }
 
-    void editHabit(int idx, const string& n, const string& c, const string& f) {
+    void editHabit(int idx,
+                   const string& n,
+                   const string& c,
+                   const string& f)
+    {
         if (idx >= 0 && idx < habitCount) {
-            habits[idx].name     = n;
-            habits[idx].category = c;
+            habits[idx].name      = n;
+            habits[idx].category  = c;
             habits[idx].frequency = f;
             cout << "Habit updated." << endl;
-        } else {
+        }
+        else {
             cout << "Invalid habit number." << endl;
         }
     }
@@ -71,10 +96,11 @@ public:
     void deleteHabit(int idx) {
         if (idx >= 0 && idx < habitCount) {
             for (int j = idx; j + 1 < habitCount; ++j)
-                habits[j] = habits[j + 1];
+                habits[j] = habits[j+1];
             habitCount--;
             cout << "Habit deleted." << endl;
-        } else {
+        }
+        else {
             cout << "Invalid habit number." << endl;
         }
     }
@@ -86,7 +112,7 @@ public:
             cout << "Invalid habit number." << endl;
     }
 
-    void showProgress() {
+    void viewProgress() const {
         if (habitCount == 0) {
             cout << "No habits to show." << endl;
             return;
@@ -94,308 +120,299 @@ public:
         for (int i = 0; i < habitCount; ++i) {
             cout << "- " << habits[i].name
                  << " | Frequency: " << habits[i].frequency
-                 << " | Streak: " << habits[i].streak
+                 << " | Streak: "     << habits[i].streak
                  << endl;
         }
+    }
+
+    void setReminder(int idx) {
+        if (idx >= 0 && idx < habitCount)
+            habits[idx].toggleReminder();
+        else
+            cout << "Invalid habit number." << endl;
     }
 };
 
 class Handler {
-    static User   users[MAX_USERS];
-    static int    userCount;
-    static User*  currentUser;
+    User*   currentUser;
+    User    users[MAX_USERS];
+    int     userCount;
 
 public:
-    static void load_users();
-    static void save_users();
+    Handler() : currentUser(nullptr), userCount(0) {}
 
-    static int  print_login_menu();
-    static int  print_and_get_choices();
-
-    static void register_user();
-    static bool login_user();
-    static void logout();
-
-    static void add_habit();
-    static void edit_habit();
-    static void delete_habit();
-    static void check_in();
-    static void view_progress();
-    static void set_reminder();
-};
-
-User  Handler::users[MAX_USERS];
-int   Handler::userCount    = 0;
-User* Handler::currentUser  = nullptr;
-
-void Handler::load_users() {
-    ifstream in("users.txt");
-    if (!in.is_open()) return;
-
-    in >> userCount;
-    for (int i = 0; i < userCount; ++i) {
-        int hcount;
-        in >> users[i].username
-           >> users[i].password
-           >> hcount;
-        users[i].habitCount = hcount;
-
-        for (int j = 0; j < hcount; ++j) {
-            in >> users[i].habits[j].name
-               >> users[i].habits[j].category
-               >> users[i].habits[j].frequency
-               >> users[i].habits[j].streak
-               >> users[i].habits[j].lastCheckIn
-               >> users[i].habits[j].reminderSet;
+    void loadUsers() {
+        ifstream in("users.txt");
+        if (!in.is_open()) return;
+        in >> userCount;
+        for (int i = 0; i < userCount; ++i) {
+            int h;
+            in >> users[i].username
+               >> users[i].password
+               >> h;
+            users[i].habitCount = h;
+            for (int j = 0; j < h; ++j) {
+                in >> users[i].habits[j].name
+                   >> users[i].habits[j].category
+                   >> users[i].habits[j].frequency
+                   >> users[i].habits[j].streak
+                   >> users[i].habits[j].lastCheckIn
+                   >> users[i].habits[j].reminderSet;
+            }
         }
     }
-}
 
-void Handler::save_users() {
-    ofstream out("users.txt");
-    out << userCount << endl;
-    for (int i = 0; i < userCount; ++i) {
-        out << users[i].username << " "
-            << users[i].password << " "
-            << users[i].habitCount << endl;
-        for (int j = 0; j < users[i].habitCount; ++j) {
-            auto& h = users[i].habits[j];
-            out << h.name << " "
-                << h.category << " "
-                << h.frequency << " "
-                << h.streak << " "
-                << h.lastCheckIn << " "
-                << h.reminderSet << endl;
+    void saveUsers() {
+        ofstream out("users.txt");
+        out << userCount << endl;
+        for (int i = 0; i < userCount; ++i) {
+            out << users[i].username << " "
+                << users[i].password << " "
+                << users[i].habitCount << endl;
+            for (int j = 0; j < users[i].habitCount; ++j) {
+                auto& h = users[i].habits[j];
+                out << h.name << " "
+                    << h.category << " "
+                    << h.frequency << " "
+                    << h.streak << " "
+                    << h.lastCheckIn << " "
+                    << h.reminderSet << endl;
+            }
         }
     }
-}
 
-int Handler::print_login_menu() {
-    int choice;
-    while (true) {
-        cout << "Please choose:\n"
-             << "(1) Register\n"
-             << "(2) Login\n"
-             << "(3) Quit\n"
-             << "============================================\n"
-             << "Your choice: ";
-        if (!(cin >> choice)) {
-            cin.clear();
+    int printLoginMenu() {
+        int choice;
+        while (true) {
+            cout << "Please choose:\n"
+                 << "(1) Register\n"
+                 << "(2) Login\n"
+                 << "(3) Quit\n"
+                 << "============================================\n"
+                 << "Your choice: ";
+            if (!(cin >> choice)) {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << "Invalid input. Please enter a number.\n\n";
+                continue;
+            }
+            if (choice >= 1 && choice <= 3) {
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                break;
+            }
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            cout << "Invalid input. Please enter a number.\n\n";
-            continue;
+            cout << "Invalid choice. Please enter 1, 2, or 3.\n\n";
         }
-        if (choice >= 1 && choice <= 3) {
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            break;
-        }
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        cout << "Invalid choice. Please enter 1, 2, or 3.\n\n";
+        return choice;
     }
-    return choice;
-}
 
-int Handler::print_and_get_choices() {
-    int choice;
-    while (true) {
-        cout << "Please choose:\n"
-             << "(1) Add Habit\n"
-             << "(2) Edit Habit\n"
-             << "(3) Delete Habit\n"
-             << "(4) Daily Check‑In\n"
-             << "(5) View Progress\n"
-             << "(6) Set Reminders\n"
-             << "(7) Logout\n"
-             << "============================================\n"
-             << "Your choice: ";
-        if (!(cin >> choice)) {
-            cin.clear();
+    int printAndGetChoices() {
+        int choice;
+        while (true) {
+            cout << "Please choose:\n"
+                 << "(1) Add Habit\n"
+                 << "(2) Edit Habit\n"
+                 << "(3) Delete Habit\n"
+                 << "(4) Daily Check‑In\n"
+                 << "(5) View Progress\n"
+                 << "(6) Set Reminders\n"
+                 << "(7) Logout\n"
+                 << "============================================\n"
+                 << "Your choice: ";
+            if (!(cin >> choice)) {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << "Invalid input. Please enter a number.\n\n";
+                continue;
+            }
+            if (choice >= 1 && choice <= 7) {
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                break;
+            }
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            cout << "Invalid input. Please enter a number.\n\n";
-            continue;
+            cout << "Invalid choice. Enter 1–7.\n\n";
         }
-        if (choice >= 1 && choice <= 7) {
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            break;
-        }
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        cout << "Invalid choice. Please enter a number from 1 to 7.\n\n";
+        return choice;
     }
-    return choice;
-}
 
-void Handler::register_user() {
-    if (userCount >= MAX_USERS) {
-        cout << "User limit reached.\n";
-        return;
-    }
-    string u,p;
-    cout << "New username: "; 
-    cin  >> u;
-    for (int i = 0; i < userCount; ++i)
-        if (users[i].username == u) {
-            cout << "That name’s taken.\n";
+    void registerUser() {
+        if (userCount >= MAX_USERS) {
+            cout << "User limit reached.\n";
             return;
         }
-    cout << "New password: ";
-    cin  >> p;
-
-    users[userCount] = User(u,p);
-    currentUser     = &users[userCount++];
-    cout << "Registered--Ready to login!"<<endl;
-    save_users();
-}
-
-bool Handler::login_user() {
-    string u,p;
-    cout << "Username: "; 
-    cin  >> u;
-    for (int i = 0; i < userCount; ++i) {
-        if (users[i].username == u) {
-            cout << "Password: ";
-            cin  >> p;
-            if (users[i].password == p) {
-                currentUser = &users[i];
-                cout << "Welcome back, " << u << "!\n";
-                return true;
+        string u, p;
+        cout << "New username: ";
+        cin  >> u;
+        for (int i = 0; i < userCount; ++i)
+            if (users[i].username == u) {
+                cout << "That name’s taken.\n";
+                return;
             }
-            cout << "Wrong password.\n";
-            return false;
+        cout << "New password: ";
+        cin  >> p;
+
+        users[userCount] = User(u, p);
+        currentUser     = &users[userCount++];
+        cout << "Registered—ready to login!\n";
+        saveUsers();
+    }
+
+    bool loginUser() {
+        string u, p;
+        cout << "Username: ";
+        cin  >> u;
+        for (int i = 0; i < userCount; ++i) {
+            if (users[i].username == u) {
+                cout << "Password: ";
+                cin  >> p;
+                if (users[i].password == p) {
+                    currentUser = &users[i];
+                    cout << "Welcome back, " << u << "!\n";
+                    return true;
+                }
+                cout << "Wrong password.\n";
+                return false;
+            }
         }
-    }
-    cout << "No such user.\n";
-    return false;
-}
-
-void Handler::logout() {
-    currentUser = nullptr;
-    cout << "Logged out.\n";
-}
-
-void Handler::add_habit() {
-    if (!currentUser) return;
-    static const string cats[5] = {
-        "Health/Fitness","Social","Wellness","Study/Work","Chores"
-    };
-    string name;
-    int    c;
-    cout << "Habit name: "; 
-    cin  >> name;
-    cout << "Category:\n";
-    for (int i = 0; i < 5; ++i)
-        cout << "(" << i+1 << ") " << cats[i] << "\n";
-    cout << "> "; 
-    cin  >> c;
-    if (c<1||c>5) c = 1;
-    int freqChoice;
-    string freqs[3]={"Daily","Weekly","Monthly"};
-    cout << "Choose Frequency:\n(1) Daily\n(2) Weekly\n(3)Monthly\n";
-    cin >> freqChoice;
-    if (freqChoice < 1 || freqChoice > 3) freqChoice = 1;
-    currentUser->addHabit(name, cats[c - 1],freqs[freqChoice-1]);
-}
-
-void Handler::edit_habit() {
-    if (!currentUser || currentUser->habitCount == 0) {
-        cout << "No habits.\n"; 
-        return;
-    }
-    cout << "Your habits:\n";
-    for (int i = 0; i < currentUser->habitCount; ++i)
-        cout << "(" << i+1 << ") "
-             << currentUser->habits[i].name
-             << " [" << currentUser->habits[i].category
-             << "]\n";
-
-    int idx; 
-    cout << "Which to edit? "; 
-    cin  >> idx;
-    if (idx<1||idx>currentUser->habitCount) {
-        cout << "Invalid.\n"; 
-        return;
+        cout << "No such user.\n";
+        return false;
     }
 
-    static const string cats[5] = {
-        "Health/Fitness","Social","Wellness","Study/Work","Chores"
-    };
-    string newName;
-    int    newCat;
-    cout << "New name: "; 
-    cin  >> newName;
-    cout << "New category:\n";
-    for (int i = 0; i < 5; ++i)
-        cout << "(" << i+1 << ") " << cats[i] << "\n";
-    cout << "> "; 
-    cin  >> newCat;
-    if (newCat<1||newCat>5) newCat = 1;
-    int newFreq;
-    cout << "New frequency:\n(1) Daily\n(2) Weekly\n(3) Monthly\n> ";
-    cin >> newFreq;
-    if (newFreq <1|| newFreq>3) newFreq = 1;
-    Habit& h= currentUser->habits[idx - 1];
-    h.name =newName;
-    h.category= cats[newCat - 1];
-    h.frequency= (newFreq == 1?"daily":newFreq== 2 ? "weekly":"monthly");
-    cout << "Habit updated.\n";
-}
-
-void Handler::delete_habit() {
-    if (!currentUser || currentUser->habitCount == 0) {
-        cout << "No habits.\n"; 
-        return;
+    void logout() {
+        currentUser = nullptr;
+        cout << "Logged out.\n";
     }
-    cout << "Your habits:\n";
-    for (int i = 0; i < currentUser->habitCount; ++i)
-        cout << "(" << i+1 << ") "
-             << currentUser->habits[i].name << "\n";
 
-    int idx;
-    cout << "Which to delete? "; 
-    cin  >> idx;
-    currentUser->deleteHabit(idx-1);
-}
+    void addHabit() {
+        if (!currentUser) return;
+        static const string cats[5] = {
+            "Health/Fitness","Social","Wellness","Study/Work","Chores"
+        };
+        string name;
+        int    c;
+        cout << "Habit name: ";
+        cin  >> name;
+        cout << "Category:\n";
+        for (int i = 0; i < 5; ++i)
+            cout << "(" << i+1 << ") " << cats[i] << "\n";
+        cout << "> ";
+        cin  >> c;
+        if (c < 1 || c > 5) c = 1;
 
-void Handler::check_in() {
-    if (!currentUser || currentUser->habitCount == 0) {
-        cout << "No habits.\n"; 
-        return;
+        int freq;
+        static const string freqs[3] = { "daily","weekly","monthly" };
+        cout << "Frequency:\n(1) Daily\n(2) Weekly\n(3) Monthly\n> ";
+        cin >> freq;
+        if (freq < 1 || freq > 3) freq = 1;
+
+        currentUser->addHabit(
+          name,
+          cats[c-1],
+          freqs[freq-1]
+        );
     }
-    cout << "Your habits:\n";
-    for (int i = 0; i < currentUser->habitCount; ++i)
-        cout << "(" << i+1 << ") "
-             << currentUser->habits[i].name << "\n";
 
-    int idx;
-    cout << "Which to check‑in? "; 
-    cin  >> idx;
-    currentUser->checkIn(idx-1);
-}
+    void editHabit() {
+        if (!currentUser || currentUser->habitCount == 0) {
+            cout << "No habits.\n";
+            return;
+        }
+        cout << "Your habits:\n";
+        for (int i = 0; i < currentUser->habitCount; ++i)
+            cout << "(" << i+1 << ") "
+                 << currentUser->habits[i].name
+                 << " [" << currentUser->habits[i].category << "]\n";
 
-void Handler::view_progress() {
-    if (!currentUser) return;
-    currentUser->showProgress();
-}
+        int idx;
+        cout << "Which to edit? ";
+        cin  >> idx;
+        if (idx < 1 || idx > currentUser->habitCount) {
+            cout << "Invalid.\n";
+            return;
+        }
 
-void Handler::set_reminder() {
-    if (!currentUser || currentUser->habitCount == 0) {
-        cout << "No habits available.\n";
-        return;
+        static const string cats[5] = {
+            "Health/Fitness","Social","Wellness","Study/Work","Chores"
+        };
+        string newName;
+        int    newCat, newFreq;
+
+        cout << "New name: ";
+        cin  >> newName;
+
+        cout << "New category:\n";
+        for (int i = 0; i < 5; ++i)
+            cout << "(" << i+1 << ") " << cats[i] << "\n";
+        cout << "> ";
+        cin  >> newCat;
+        if (newCat < 1 || newCat > 5) newCat = 1;
+
+        cout << "New frequency:\n(1) Daily\n(2) Weekly\n(3) Monthly\n> ";
+        cin >> newFreq;
+        if (newFreq < 1 || newFreq > 3) newFreq = 1;
+
+        currentUser->editHabit(
+            idx-1,
+            newName,
+            cats[newCat-1],
+            (newFreq==1 ? "daily"
+             : newFreq==2 ? "weekly"
+                          : "monthly")
+        );
     }
-    cout << "Select a habit to set reminder:\n";
-    for (int i = 0;i <currentUser->habitCount; ++i){
-        cout << "(" << i + 1 << ") "
-             << currentUser->habits[i].name
-             << " [" << (currentUser->habits[i].reminderSet ? "ON" : "OFF") << "]\n";
+
+    void deleteHabit() {
+        if (!currentUser || currentUser->habitCount == 0) {
+            cout << "No habits.\n";
+            return;
+        }
+        cout << "Your habits:\n";
+        for (int i = 0; i < currentUser->habitCount; ++i)
+            cout << "(" << i+1 << ") "
+                 << currentUser->habits[i].name << "\n";
+
+        int idx;
+        cout << "Which to delete? ";
+        cin  >> idx;
+        currentUser->deleteHabit(idx-1);
     }
-    int idx;
-    cout << "Enter habit number: ";
-    cin >> idx;
-    if (idx < 1|| idx >currentUser->habitCount) {
-        cout << "Invalid.\n";
-        return;
+
+    void checkIn() {
+        if (!currentUser || currentUser->habitCount == 0) {
+            cout << "No habits.\n";
+            return;
+        }
+        cout << "Your habits:\n";
+        for (int i = 0; i < currentUser->habitCount; ++i)
+            cout << "(" << i+1 << ") "
+                 << currentUser->habits[i].name << "\n";
+
+        int idx;
+        cout << "Which to check‑in? ";
+        cin  >> idx;
+        currentUser->checkIn(idx-1);
     }
-    currentUser->habits[idx - 1].reminderSet=!currentUser->habits[idx - 1].reminderSet;
-    cout << "Reminder set for "<< currentUser->habits[idx - 1].name << ".\n";
-}
+
+    void viewProgress() {
+        if (currentUser) currentUser->viewProgress();
+    }
+
+    void setReminder() {
+        if (!currentUser || currentUser->habitCount == 0) {
+            cout << "No habits available.\n";
+            return;
+        }
+        cout << "Select a habit to set reminder:\n";
+        for (int i = 0; i < currentUser->habitCount; ++i)
+            cout << "(" << i+1 << ") "
+                 << currentUser->habits[i].name
+                 << " [" << (currentUser->habits[i].reminderSet ? "ON":"OFF") << "]\n";
+
+        int idx;
+        cout << "Enter habit number: ";
+        cin >> idx;
+        currentUser->setReminder(idx-1);
+    }
+};
 
 #endif 
