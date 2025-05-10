@@ -45,13 +45,13 @@ The **Daily Habit Tracker** is a command-line interface (CLI) application writte
   Organize habits under custom categories to focus on different aspects of your life.
 
 - **Daily Check-Ins**  
-  Mark each habit as “completed” or “skipped” each day through a simple prompt.
+  Mark each habit as “completed” or “skipped” each day.
 
 - **View Progress**  
-  See your habit completion rates over time, rendered as a basic ASCII chart in the terminal.
+  See your habit completion rates over time, rendered as a basic chart in the terminal.
 
 - **Notifications & Reminders**  
-  Configure optional system notifications or terminal alerts to remind you to check in.
+  Terminal alerts to remind you to check in.
 ---
 
 ## Building
@@ -60,3 +60,8 @@ The **Daily Habit Tracker** is a command-line interface (CLI) application writte
    ```bash
    git clone https://github.com/your-username/daily-habit-tracker.git
    cd daily-habit-tracker
+
+## Running
+  ```bash
+  g++ -std=c++17 main.cpp -o main
+  ./main

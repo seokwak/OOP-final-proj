@@ -253,7 +253,7 @@ public:
 
         users[userCount] = User(u, p);
         currentUser     = &users[userCount++];
-        cout << "Registered—ready to login!\n";
+        cout << "Registered! You are now ready to login!\n";
         saveUsers();
     }
 
