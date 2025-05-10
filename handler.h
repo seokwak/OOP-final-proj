@@ -398,20 +398,42 @@ public:
     }
 
     void setReminder() {
-        if (!currentUser || currentUser->habitCount == 0) {
+        if (!currentUser|| currentUser->habitCount == 0) {
             cout << "No habits available.\n";
             return;
         }
         cout << "Select a habit to set reminder:\n";
-        for (int i = 0; i < currentUser->habitCount; ++i)
-            cout << "(" << i+1 << ") "
+        for (int i = 0;i <currentUser->habitCount; ++i){
+            cout << "(" << i + 1 << ") "
                  << currentUser->habits[i].name
-                 << " [" << (currentUser->habits[i].reminderSet ? "ON":"OFF") << "]\n";
-
+                 << " [" << (currentUser->habits[i].reminderSet ? "ON" : "OFF") << "]\n";
+        }
         int idx;
         cout << "Enter habit number: ";
         cin >> idx;
-        currentUser->setReminder(idx-1);
+        if (idx < 1|| idx >currentUser->habitCount) {
+            cout << "Invalid.\n";
+            return;
+        }
+        currentUser->habits[idx - 1].reminderSet=!currentUser->habits[idx - 1].reminderSet;
+        cout << "Reminder set for "<< currentUser->habits[idx - 1].name << ".\n"; 
+    }
+    void show_reminders() {
+        if (!currentUser||currentUser->habitCount== 0) return;
+        cout << "\nHabit Reminders:\n";
+        time_t now= time(0);
+        for (int i=0;i<currentUser->habitCount; ++i) {
+            Habit& h = currentUser->habits[i];
+            if (!h.reminderSet) continue;
+            double daysPassed = difftime(now, h.lastCheckIn)/86400.0; 
+            if (h.lastCheckIn==0|| (h.frequency =="daily"&& daysPassed >=1) ||
+                (h.frequency =="weekly"&& daysPassed >=7)||
+                (h.frequency =="monthly"&& daysPassed >=30)) {
+                    cout << h.name << " (" << h.frequency << ") is due for check-in!\n";
+            }
+        }
+    
+        cout << "============================================\n";
     }
 };
 

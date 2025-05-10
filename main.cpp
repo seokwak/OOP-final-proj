@@ -28,6 +28,7 @@ int main() {
                     bool inSession = true;
                     while (inSession) {
                         system("clear");
+                        handler.show_reminders();
                         int cmd = handler.printAndGetChoices();
                         switch (cmd) {
                             case 1:
